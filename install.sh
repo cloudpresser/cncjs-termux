@@ -3,10 +3,10 @@
 # CNCjs + CLI Camera Streamer for Shapeoko 5 Pro
 echo "--- Initializing CNCjs Termux Suite ---"
 
-# 1. Install System Dependencies
-# We install python, nodejs, and build-essential for native modules
-pkg update -y && pkg upgrade -y
-pkg install nodejs-lts python python-pip build-essential libopencv-headless -y
+# 1. Install Dependencies (Termux:API app must be installed from F-Droid)
+# Using -o Dpkg::Options::="--force-confnew" to prevent interactive prompts
+pkg update -y -o Dpkg::Options::="--force-confnew" && pkg upgrade -y -o Dpkg::Options::="--force-confnew"
+pkg install nodejs-lts python termux-api coreutils build-essential python-pip libopencv-headless -y
 
 # 2. Install CNCjs and Python MJPEG Library
 echo "Installing CNCjs and Camera components..."
@@ -18,8 +18,11 @@ cat >~/stream_camera.py <<'EOF'
 import cv2
 from mjpeg_streamer import MjpegServer, Stream
 
-# Initialize camera
-cap = cv2.VideoCapture(0)
+# Initialize camera (Try index 0 first, then 1 if black screen)
+try:
+    cap = cv2.VideoCapture(0)
+except:
+    cap = cv2.VideoCapture(1)
 
 # Create MJPEG Stream
 stream = Stream("cnc_cam", size=(640, 480), quality=50, fps=20)
